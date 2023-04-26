@@ -1,24 +1,24 @@
-#![allow(unused)]
 use std::{
   io,
-  str::{from_boxed_utf8_unchecked, from_utf8},
-  thread::sleep,
   time::{Duration, Instant},
 };
 
 use crossterm::{
-  event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+  event::{self, Event, KeyCode},
   execute,
   terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use tui::{
   backend::{Backend, CrosstermBackend},
-  layout::{Constraint, Direction, Layout, Rect},
-  style::Style,
-  text::Span,
-  widgets::{canvas::Label, Block, Borders, Paragraph},
+  layout::Rect,
+  widgets::Paragraph,
   Frame, Terminal,
 };
+
+const C: f64 = 1.45;
+const Q: f64 = 0.5;
+const G: f64 = 0.25;
+const P: f64 = 0.25;
 
 fn main() -> anyhow::Result<()> {
   enable_raw_mode()?;
@@ -30,7 +30,7 @@ fn main() -> anyhow::Result<()> {
   let size = terminal.size()?;
   if size.width < 74 || size.height < 21 {
     quit(&mut terminal)?;
-    println!("terminal too small, must be at least 21x74");
+    println!("terminal too small, must be at least 74x21");
     return Ok(());
   }
 
@@ -48,7 +48,7 @@ fn main() -> anyhow::Result<()> {
 
 fn quit<B>(terminal: &mut Terminal<B>) -> anyhow::Result<()>
 where
-  B: Backend + std::io::Write,
+  B: Backend + io::Write,
 {
   disable_raw_mode()?;
   execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
@@ -60,8 +60,8 @@ fn run<B: Backend>(
   terminal: &mut Terminal<B>, mut eye: Eye, tick_rate: Duration,
 ) -> anyhow::Result<()> {
   let mut last_tick = Instant::now();
-  for m in 1..1000 {
-    terminal.draw(|f| ui(f, &eye));
+  for m in 1.. {
+    terminal.draw(|f| ui(f, &eye))?;
     let timeout = tick_rate
       .checked_sub(last_tick.elapsed())
       .unwrap_or_else(|| Duration::from_secs(0));
@@ -89,17 +89,13 @@ struct Eye {
 
 impl Eye {
   fn new(size: Rect) -> Self {
-    let c = 1.45;
-    let q = 0.5;
-    let g = 0.25;
-    let p = 0.25;
     let v = move |x: f64, t: f64, s: f64| {
-      let a = (x - c).abs();
-      let j = (t - q).abs();
-      if j > p || a > 2.0 * g {
+      let a = (x - C).abs();
+      let j = (t - Q).abs();
+      if j > P || a > 2.0 * G {
         0
       } else {
-        (s * -(2.0 * p * g - p * a - g * j) + s) as usize
+        (s * -(2.0 * P * G - P * a - G * j) + s) as usize
       }
     };
     Self {
@@ -116,7 +112,7 @@ impl Eye {
       for x in 0..self.width {
         let d = (self.v)(
           x as f64 / self.width as f64 * 3.0,
-          t as f64 / (self.height as f64 - 1.45),
+          t as f64 / (self.height as f64 - C),
           m as f64,
         );
         s.push(b" .:-=+*&#%@"[d % 11]);
