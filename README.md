@@ -1,3 +1,5 @@
 # Compound Eye
 
-![eye see you](./compound-eye.png)
+<p align="center">
+  <img src="./compound-eye.png" />
+</p>
