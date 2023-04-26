@@ -1,0 +1,25 @@
+let c = 1.45;
+let q = 0.5;
+let g = 0.25;
+let p = 0.25;
+let v = |x: f64, t: f64, s: f64| {
+  let a = (x - c).abs();
+  let j = (t - q).abs();
+  if j > p || a > 2.0 * g {
+    0
+  } else {
+    (s * -(2.0 * p * g - p * a - g * j) + s) as usize
+  }
+};
+for m in 1..1000 {
+  let mut s = b"\n  ".to_vec();
+  for t in 0..21 {
+    for x in 0..74 {
+      let d = v(x as f64 / 25.0, t as f64 / 21.0, m as f64);
+      s.push(b" .:-=+*&#%@"[d % 11]);
+    }
+    s.extend_from_slice(b"\n  ");
+  }
+  sleep(Duration::from_millis(20));
+  println!("{}", from_utf8(&s)?);
+}
