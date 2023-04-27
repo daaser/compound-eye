@@ -80,6 +80,11 @@ fn run<B: Backend>(
   Ok(())
 }
 
+fn ui<B: Backend>(f: &mut Frame<B>, eye: &Eye) {
+  let label = Paragraph::new(eye.state.clone());
+  f.render_widget(label, f.size());
+}
+
 struct Eye {
   state: String,
   height: u16,
@@ -122,10 +127,4 @@ impl Eye {
     self.state = String::from_utf8(s)?;
     Ok(())
   }
-}
-
-fn ui<B: Backend>(f: &mut Frame<B>, eye: &Eye) {
-  let label = Paragraph::new(eye.state.clone());
-  // let block = Block::default().title("").borders(Borders::ALL);
-  f.render_widget(label, f.size());
 }
